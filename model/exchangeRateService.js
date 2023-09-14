@@ -1,4 +1,3 @@
-// exchangeRateService.js
 const https = require('https');
 
 class ExchangeRateService {
@@ -17,29 +16,37 @@ class ExchangeRateService {
     };
 
     try {
-      const data = await new Promise((resolve, reject) => {
-        const apiReq = https.request(apiUrl, options, (apiRes) => {
-          let data = '';
-          apiRes.on('data', (chunk) => {
-            data += chunk;
-          });
-          apiRes.on('end', () => {
-            if (apiRes.statusCode === 200) {
-              resolve(data);
-            } else {
-              reject(new Error(`A solicitação falhou com o código de status: ${apiRes.statusCode}`));
-            }
-          });
-        });
-        apiReq.on('error', (error) => {
-          reject(error);
-        });
-        apiReq.end();
-      });
+      const data = await this.requestExchangeRate(apiUrl, options);
       return data;
     } catch (error) {
       throw new Error(`Ocorreu um erro ao fazer a solicitação para a API: ${error.message}`);
     }
+  }
+
+  async requestExchangeRate(apiUrl, options) {
+    return new Promise((resolve, reject) => {
+      const apiReq = https.request(apiUrl, options, (apiRes) => {
+        let data = '';
+
+        apiRes.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        apiRes.on('end', () => {
+          if (apiRes.statusCode === 200) {
+            resolve(data);
+          } else {
+            reject(new Error(`A solicitação falhou com o código de status: ${apiRes.statusCode}`));
+          }
+        });
+      });
+
+      apiReq.on('error', (error) => {
+        reject(error);
+      });
+
+      apiReq.end();
+    });
   }
 }
 
